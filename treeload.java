@@ -15,14 +15,15 @@ public class treeload {
             tree.insert("test",200);
             tree.insert("test1",200);
             tree.insert("test2",200);
+           BPTree.LeafNode xx = tree.findLeafNode("test1");
 //            tree.insert("test3",200);
 //            tree.insert("test4",200);
 //            tree.insert("test5",200);
-
             System.out.println("test ");
         }else {
             return;
         }
+
         int pageSize = Integer.parseInt(args[constants.TREELOAD_PAGE_SIZE_ARG]);
         String datafile = "heap." + pageSize;
         FileInputStream inStream = null;
