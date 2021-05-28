@@ -372,7 +372,7 @@ public class Bulkloading {
             if (i == 0) {
                 in = new InternalNode();
             }
-            if (j == max +1) {
+            if (j == max + 1) {
                 c = 0;
                 j = 0;
                 this.internalNodeList.add(in);
@@ -394,8 +394,54 @@ public class Bulkloading {
         this.leaf.clear();
     }
 
-    public void mergeInternalNode() {
+    public void mergeInternalNode(ArrayList<InternalNode> n) {
+        InternalNode in = null;
+        int c = 0;
+        ArrayList<InternalNode> merged = new ArrayList<>();
+        for (int i = 0, j = 0; i <= n.size(); i++, j++) {
+            if (i == 0) {
+                in = new InternalNode();
+            }
+            if (j == max + 1) {
+                c = 0;
+                j = 0;
+                merged.add(in);
+                in = new InternalNode();
+            }
+            if (i >= n.size()) {
+                break;
+            }
+            in.addPointer(n.get(i));
+            if (c == 0) {
+                c++;
+            } else {
+                LeafNode ptr = (LeafNode) lowestLeaf(n.get(i));
+                //find 2nd internal node lowest leaf
+                LeafNode ln = (LeafNode) n.get(i).pointers.get(0);
+                in.addKeys(ptr.keyPairs.get(0).key);
 
+            }
+        }
+        if (merged.size() == 1) {
+            this.root = merged.get(0);
+        } else {
+            mergeInternalNode(merged);
+        }
     }
 
+    public Node lowestLeaf(Node node) {
+        if (node instanceof LeafNode) {
+            return node;
+        } else {
+            return lowestLeaf(((InternalNode) node).pointers.get(0));
+        }
+    }
+
+    public Node highestLeaf(Node node) {
+        if (node instanceof LeafNode) {
+            return node;
+        } else {
+            return lowestLeaf(((InternalNode) node).pointers.get(((InternalNode) node).pointers.size() - 1));
+        }
+    }
 }

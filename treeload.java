@@ -15,16 +15,6 @@ public class treeload {
             Bulkloading tree = new Bulkloading();
 
             tree.insertBulk("test", 200);
-            tree.insertBulk("test1", 200);
-            tree.insertBulk("test2", 200);
-            tree.insertBulk("test3", 200);
-            tree.insertBulk("test4", 200);
-            tree.insertBulk("test5", 200);
-            tree.insertBulk("test6", 200);
-            tree.insertBulk("test7", 200);
-            tree.insertBulk("test8", 200);
-            tree.insertBulk("test9", 200);
-            tree.insertBulk("test10", 200);
             tree.insertBulk("test11", 200);
             tree.insertBulk("test12", 200);
             tree.insertBulk("test13", 200);
@@ -32,18 +22,29 @@ public class treeload {
             tree.insertBulk("test15", 200);
             tree.insertBulk("test16", 200);
             tree.insertBulk("test17", 200);
+            tree.insertBulk("test18", 200);
+            tree.insertBulk("test19", 200);
+            tree.insertBulk("test20", 200);
+            tree.insertBulk("test21", 200);
+            tree.insertBulk("test22", 200);
+            tree.insertBulk("test23", 200);
+            tree.insertBulk("test24", 200);
+            tree.insertBulk("test25", 200);
+            tree.insertBulk("test26", 200);
+            tree.insertBulk("test27", 200);
             tree.constructInternalNode();
+            tree.mergeInternalNode(tree.internalNodeList);
 
 //            tree.printTree();
 
 //            tree.printTree(tree.root);
-//           BPTreeSimple.LeafNode xx = tree.searchLeaf("test5");
-//           BPTreeSimple.LeafNode x1 = tree.searchLeaf("test6");
-//           BPTreeSimple.LeafNode x2 = tree.searchLeaf("test");
-//           BPTreeSimple.LeafNode x3 = tree.searchLeaf("test");
-//           BPTreeSimple.LeafNode x2 = tree.searchLeaf("test7");
-//           BPTreeSimple.LeafNode x3 = tree.searchLeaf("test8");
-//           BPTreeSimple.LeafNode x4 = tree.searchLeaf("test10");
+            Bulkloading.LeafNode xx = tree.searchLeaf("test25");
+            Bulkloading.LeafNode x1 = tree.searchLeaf("test16");
+            Bulkloading.LeafNode x2 = tree.searchLeaf("test");
+            Bulkloading.LeafNode x3 = tree.searchLeaf("test");
+            Bulkloading.LeafNode x4 = tree.searchLeaf("test17");
+            Bulkloading.LeafNode x5 = tree.searchLeaf("test18");
+            Bulkloading.LeafNode x6 = tree.searchLeaf("test10");
             System.out.println("test ");
         } else {
             return;
