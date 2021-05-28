@@ -5,69 +5,156 @@ import java.util.List;
 public class Bulkloading {
     InternalNode root;
     LeafNode firstLeaf;
-    LeafNode[] leaf;
-    int leafCount;
-    int emptyLeafIndex;
-    int internalNodeCount;
+    ArrayList<LeafNode> leaf;
     InternalNode internalNode;
-    InternalNode[] internalNodeList;
+    ArrayList<InternalNode> internalNodeList;
     int max = 2;
+    int emptyLeafIndex = 0;
 
     public Bulkloading() {
-        leaf = new LeafNode[3000000];
-        internalNodeList = new InternalNode[1000000];
-        this.leafCount = 0;
-        this.emptyLeafIndex = 0;
-        this.internalNodeCount = 0;
+        this.leaf = new ArrayList<>();
+        this.internalNodeList = new ArrayList<>();
     }
-    public void addLeaf(LeafNode n){
-        this.leaf[leafCount] = n;
-        leafCount++;
-    }
-    public void addInternal(InternalNode n){
-        this.internalNodeList[internalNodeCount] = n;
-        internalNodeCount++;
-    }
+
     public class Node {
         InternalNode parent;
     }
 
     public class InternalNode extends Node {
-        String[] keys;
-        Node[] pointers;
-        int keyCount;
-        int pointerCount;
+        ArrayList<String> keys;
+        ArrayList<Node> pointers;
+        int level;
 
         private InternalNode() {
-            this.keys = new String[max];
-            this.pointers = new Node[max + 1];
-            int elementCount = 0;
+            this.keys = new ArrayList<>();
+            this.pointers = new ArrayList<>();
+        }
+
+        private void setLevel(int l) {
+            this.level = l;
+        }
+
+        private int getLevel() {
+            return this.level;
         }
 
         private void addKeys(String key) {
-            this.keys[keyCount] = key;
-            keyCount++;
+            this.keys.add(key);
+        }
+
+        private int findIndexOfPointer(Node pointer) {
+            for (int i = 0; i < pointers.size(); i++) {
+                if (pointers.get(i) == pointer) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void insertChildPointer(Node pointer, int index) {
+            this.pointers.add(index, pointer);
+        }
+
+
+        private ArrayList<InternalNode> splitInternal() {
+            //ref instead of creating new
+            List<String> first = this.keys.subList(0, max / 2);
+            List<Node> firstPointer = this.pointers.subList(0, this.pointers.size() / 2);
+            List<String> second = this.keys.subList(max / 2, this.keys.size());
+            List<Node> secondPointer = this.pointers.subList(this.pointers.size() / 2, this.pointers.size());
+            ArrayList<InternalNode> splitInternal = new ArrayList<InternalNode>();
+            InternalNode l1 = new InternalNode();
+            for (String k : first) {
+                l1.addKeys(k);
+            }
+            for (Node p : firstPointer) {
+                p.parent = l1;
+                l1.addPointer(p);
+            }
+            InternalNode l2 = new InternalNode();
+            for (String k : second) {
+                l2.addKeys(k);
+            }
+            for (Node p : secondPointer) {
+                p.parent = l2;
+                l2.addPointer(p);
+            }
+
+            //link leaf node after split
+            splitInternal.add(l1);
+            splitInternal.add(l2);
+            return splitInternal;
         }
 
         private void addPointer(Node p) {
-            this.pointers[pointerCount] = p;
-            pointerCount++;
+//            int index=0;
+//            for (Node n : this.pointers) {
+//                if (n == null){}
+//                if (n instanceof LeafNode) {
+//                    LeafNode ln = (LeafNode) n;
+//                    LeafNode aln = (LeafNode) p;
+//                    int c = ln.keyPairs.get(0).compareTo(aln.keyPairs.get(0));
+//                    if (c > 0) {
+//
+//                        //key is larger
+//                        break;
+//                    }else{
+//                        index++;
+//                    }
+//                } else {
+//                    InternalNode in = (InternalNode) n;
+//                    InternalNode ain = (InternalNode) p;
+//                    int c = in.keys.get(0).compareTo(ain.keys.get(0));
+//                    if (c > 0) {
+//                        //key is larger
+//                        break;
+//                    }else{
+//                        index++;
+//                    }
+//                }
+//            }
+            pointers.add(p);
+        }
+
+        private void removePointer(Node p) {
+            pointers.remove(p);
         }
     }
 
     public class LeafNode extends Node {
-        KeyPair[] keyPairs;
-        int pairCount;
+        ArrayList<KeyPair> keyPairs;
         LeafNode sibling;
 
         private LeafNode() {
-            this.keyPairs = new KeyPair[max];
-            this.pairCount = 0;
+            this.keyPairs = new ArrayList<>();
         }
 
         private void addKeyPair(KeyPair kp) {
-            keyPairs[pairCount] = kp;
-            pairCount++;
+            keyPairs.add(kp);
+        }
+
+        public ArrayList<LeafNode> splitLeaf() {
+            List<KeyPair> first = keyPairs.subList(0, max / 2);
+            List<KeyPair> second = keyPairs.subList(max / 2, keyPairs.size());
+            ArrayList<LeafNode> splitLeaf = new ArrayList<LeafNode>();
+            LeafNode l1 = new LeafNode();
+            for (KeyPair k : first) {
+                l1.addKeyPair(new KeyPair(k.key, k.value));
+            }
+            LeafNode l2 = new LeafNode();
+            for (KeyPair k : second) {
+                l2.addKeyPair(new KeyPair(k.key, k.value));
+            }
+            //link leaf node after split
+            l1.sibling = l2;
+            splitLeaf.add(l1);
+            splitLeaf.add(l2);
+            return splitLeaf;
+        }
+
+        public String getMiddleKey() {
+            int mid = max / 2;
+            return keyPairs.get(mid).key;
         }
     }
 
@@ -83,6 +170,71 @@ public class Bulkloading {
         @Override
         public int compareTo(KeyPair o) {
             return this.key.compareTo(o.key);
+        }
+    }
+
+    public void insert(String key, int value) {
+        LeafNode ln = new LeafNode();
+        if (this.firstLeaf == null) {
+            ln.addKeyPair(new KeyPair(key, value));
+            this.firstLeaf = ln;
+        } else {
+            if (this.root == null) {
+                ln = this.firstLeaf;
+            }
+            if (this.root != null) {
+                ln = searchLeaf(key);
+            }
+            ln.addKeyPair(new KeyPair(key, value));
+
+            if (ln.keyPairs.size() > max) {
+                ArrayList<LeafNode> split = ln.splitLeaf();
+                String md = ln.getMiddleKey();
+                if (ln.parent == null) {
+                    InternalNode p = new InternalNode();
+                    p.addKeys(md);
+                    p.addPointer(split.get(0));
+                    p.addPointer(split.get(1));
+                    this.root = p;
+                    split.get(0).parent = this.root;
+                    split.get(1).parent = this.root;
+                } else {
+                    ln.parent.addKeys(md);
+//                    ln.parent.pointers = split.get(0);
+                    ln.keyPairs = split.get(0).keyPairs;
+                    ln.parent.addPointer(split.get(1));
+                    split.get(1).parent = ln.parent;
+                    InternalNode In = ln.parent;
+                    if (In.keys.size() > max) {
+                        ArrayList<InternalNode> splitIn = In.splitInternal();
+                        String mid = In.keys.get(max / 2);
+                        if (In.parent == null) {
+                            In.parent = new InternalNode();
+                            In.keys.remove(mid);
+                            splitIn.get(1).keys.remove(mid);
+                            In.parent.addKeys(mid);
+                            In.parent.addPointer(splitIn.get(0));
+                            In.parent.addPointer(splitIn.get(1));
+                            splitIn.get(0).parent = In.parent;
+                            splitIn.get(1).parent = In.parent;
+                            root = In.parent;
+                        } else {
+                            //old link remain
+                            //split link require
+                            //figure new splitting method
+                            In.keys.remove(mid);
+                            splitIn.get(1).keys.remove(mid);
+                            In.parent.pointers.remove(In);
+                            In.parent.addKeys(mid);
+                            In.parent.addPointer(splitIn.get(0));
+                            In.parent.addPointer(splitIn.get(1));
+                            splitIn.get(0).parent = In.parent;
+                            splitIn.get(1).parent = In.parent;
+                        }
+                    }
+
+                }
+            }
         }
     }
 
@@ -107,20 +259,21 @@ public class Bulkloading {
 
     // Find the leaf node
     public LeafNode searchLeaf(String key) {
-        String[] keys = this.root.keys;
+
+        ArrayList<String> keys = this.root.keys;
         int i;
-        for (i = 0; i < this.root.pointers.length - 1; i++) {
-            if (i >= keys.length) {
+        for (i = 0; i < this.root.pointers.size() - 1; i++) {
+            if (i >= keys.size()) {
                 break;
             }
-            int c = keys[i].compareTo(key);
+            int c = keys.get(i).compareTo(key);
             if (c > 0) {
                 //key is larger
                 break;
             }
         }
 
-        Node child = this.root.pointers[i];
+        Node child = this.root.pointers.get(i);
         if (child instanceof LeafNode) {
             return (LeafNode) child;
         } else {
@@ -131,40 +284,47 @@ public class Bulkloading {
     // Find the leaf node
     private LeafNode searchLeaf(InternalNode node, String key) {
 
-        String[] keys = node.keys;
+        ArrayList<String> keys = node.keys;
         int i;
-        for (i = 0; i < node.pointers.length - 1; i++) {
-            int c = keys[i].compareTo(key);
+
+        for (i = 0; i < node.pointers.size() - 1; i++) {
+            int c = keys.get(i).compareTo(key);
             if (c > 0) {
                 //key is larger
                 break;
             }
         }
-        Node childNode = node.pointers[i];
+        Node childNode = node.pointers.get(i);
         if (childNode instanceof LeafNode) {
             return (LeafNode) childNode;
         } else {
-            return searchLeaf((InternalNode) node.pointers[i], key);
+            return searchLeaf((InternalNode) node.pointers.get(i), key);
         }
     }
 
     public void insertBulk(String key, int value) {
         //if the collection of leaf size less than maximum
-        if (this.leafCount == 0) {
+        if (this.leaf.size() == 0) {
             LeafNode ln = new LeafNode();
             ln.addKeyPair(new KeyPair(key, value));
-            this.addLeaf(ln);
+            this.leaf.add(ln);
         } else {
             //check the keys in leaf if it is full or not
             //if the leaf is not full
-            if(this.leaf[emptyLeafIndex] != null && this.leaf[emptyLeafIndex].pairCount < max){
-                this.leaf[emptyLeafIndex].addKeyPair(new KeyPair(key, value));
+            if (this.leaf.size() > emptyLeafIndex && this.leaf.get(emptyLeafIndex).keyPairs.size() < max) {
+                this.leaf.get(emptyLeafIndex).addKeyPair(new KeyPair(key, value));
                 emptyLeafIndex++;
-            }else{
+            } else {
                 LeafNode ln = new LeafNode();
                 ln.addKeyPair(new KeyPair(key, value));
-                this.addLeaf(ln);
+                this.leaf.add(ln);
             }
+//                if(){
+//                    this.leaf.get(this.leaf.size()-1).addKeyPair(new KeyPair(key,value));
+//                    //perform key insertion
+//                }
+            //if leaf is full create new leaf and insert
+            //get the last leaf to insert keypair
         }
 
 
@@ -206,30 +366,30 @@ public class Bulkloading {
     public void constructInternalNode() {
         int c = 0;
         InternalNode in = null;
-        for (int i = 0, j = 0; i <= this.leafCount; i++, j++) {
+        for (int i = 0, j = 0; i <= this.leaf.size(); i++, j++) {
             if (i == 0) {
                 in = new InternalNode();
             }
             if (j == max + 1) {
                 c = 0;
                 j = 0;
-                this.addInternal(in);
+                this.internalNodeList.add(in);
                 in = new InternalNode();
             }
-            if (i >= this.leaf.length) {
+            if (i >= this.leaf.size()) {
                 break;
             }
-            in.addPointer(this.leaf[i]);
+            in.addPointer(this.leaf.get(i));
             if (c == 0) {
                 c++;
             } else {
-                in.addKeys(this.leaf[i].keyPairs[0].key);
+                in.addKeys(this.leaf.get(i).keyPairs.get(0).key);
             }
 //            if(this.leaf.size() - i < this.leaf.size()%(max+1)){
 //
 //            }
         }
-        this.leaf = null;
+        this.leaf.clear();
     }
 
     public void mergeInternalNode(ArrayList<InternalNode> n) {
@@ -255,13 +415,13 @@ public class Bulkloading {
             } else {
                 LeafNode ptr = (LeafNode) lowestLeaf(n.get(i));
                 //find 2nd internal node lowest leaf
-                LeafNode ln = (LeafNode) n.get(i).pointers[0];
-                in.addKeys(ptr.keyPairs[0].key);
+                in.addKeys(ptr.keyPairs.get(0).key);
 
             }
         }
         if (merged.size() == 1) {
             this.root = merged.get(0);
+            this.internalNodeList.clear();
         } else {
             mergeInternalNode(merged);
         }
@@ -271,7 +431,7 @@ public class Bulkloading {
         if (node instanceof LeafNode) {
             return node;
         } else {
-            return lowestLeaf(((InternalNode) node).pointers[0]);
+            return lowestLeaf(((InternalNode) node).pointers.get(0));
         }
     }
 
@@ -279,7 +439,7 @@ public class Bulkloading {
         if (node instanceof LeafNode) {
             return node;
         } else {
-            return lowestLeaf(((InternalNode) node).pointers[((InternalNode) node).pointers.length - 1]);
+            return lowestLeaf(((InternalNode) node).pointers.get(((InternalNode) node).pointers.size() - 1));
         }
     }
 }
