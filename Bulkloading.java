@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Bulkloading {
+public class Bulkloading implements Serializable {
     InternalNode root;
     LeafNode firstLeaf;
     ArrayList<LeafNode> leaf;
@@ -16,11 +17,11 @@ public class Bulkloading {
         this.internalNodeList = new ArrayList<>();
     }
 
-    public class Node {
+    public class Node implements Serializable {
         InternalNode parent;
     }
 
-    public class InternalNode extends Node {
+    public class InternalNode extends Node implements Serializable {
         ArrayList<String> keys;
         ArrayList<Node> pointers;
         int level;
@@ -121,7 +122,7 @@ public class Bulkloading {
         }
     }
 
-    public class LeafNode extends Node {
+    public class LeafNode extends Node implements Serializable {
         ArrayList<KeyPair> keyPairs;
         LeafNode sibling;
 
@@ -139,11 +140,11 @@ public class Bulkloading {
             ArrayList<LeafNode> splitLeaf = new ArrayList<LeafNode>();
             LeafNode l1 = new LeafNode();
             for (KeyPair k : first) {
-                l1.addKeyPair(new KeyPair(k.key, k.value));
+                l1.addKeyPair(new KeyPair(k.key, k.record,k.pageNumber));
             }
             LeafNode l2 = new LeafNode();
             for (KeyPair k : second) {
-                l2.addKeyPair(new KeyPair(k.key, k.value));
+                l2.addKeyPair(new KeyPair(k.key, k.record,k.pageNumber));
             }
             //link leaf node after split
             l1.sibling = l2;
@@ -158,25 +159,22 @@ public class Bulkloading {
         }
     }
 
-    public class KeyPair implements Comparable<KeyPair> {
+    public class KeyPair implements Serializable {
         String key;
-        int value;
+        int record;
+        int pageNumber;
 
-        private KeyPair(String key, int value) {
+        private KeyPair(String key, int record,int page) {
             this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public int compareTo(KeyPair o) {
-            return this.key.compareTo(o.key);
+            this.record = record;
+            this.pageNumber = page;
         }
     }
 
-    public void insert(String key, int value) {
+    public void insert(String key, int record,int page) {
         LeafNode ln = new LeafNode();
         if (this.firstLeaf == null) {
-            ln.addKeyPair(new KeyPair(key, value));
+            ln.addKeyPair(new KeyPair(key, record,page));
             this.firstLeaf = ln;
         } else {
             if (this.root == null) {
@@ -185,7 +183,7 @@ public class Bulkloading {
             if (this.root != null) {
                 ln = searchLeaf(key);
             }
-            ln.addKeyPair(new KeyPair(key, value));
+            ln.addKeyPair(new KeyPair(key, record,page));
 
             if (ln.keyPairs.size() > max) {
                 ArrayList<LeafNode> split = ln.splitLeaf();
@@ -302,21 +300,21 @@ public class Bulkloading {
         }
     }
 
-    public void insertBulk(String key, int value) {
+    public void insertBulk(String key, int record,int page) {
         //if the collection of leaf size less than maximum
         if (this.leaf.size() == 0) {
             LeafNode ln = new LeafNode();
-            ln.addKeyPair(new KeyPair(key, value));
+            ln.addKeyPair(new KeyPair(key, record,page));
             this.leaf.add(ln);
         } else {
             //check the keys in leaf if it is full or not
             //if the leaf is not full
             if (this.leaf.size() > emptyLeafIndex && this.leaf.get(emptyLeafIndex).keyPairs.size() < max) {
-                this.leaf.get(emptyLeafIndex).addKeyPair(new KeyPair(key, value));
+                this.leaf.get(emptyLeafIndex).addKeyPair(new KeyPair(key, record,page));
                 emptyLeafIndex++;
             } else {
                 LeafNode ln = new LeafNode();
-                ln.addKeyPair(new KeyPair(key, value));
+                ln.addKeyPair(new KeyPair(key, record,page));
                 this.leaf.add(ln);
             }
 //                if(){
@@ -421,7 +419,7 @@ public class Bulkloading {
         }
         if (merged.size() == 1) {
             this.root = merged.get(0);
-            this.internalNodeList.clear();
+//            this.internalNodeList.clear();
         } else {
             mergeInternalNode(merged);
         }
