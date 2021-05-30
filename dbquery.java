@@ -65,10 +65,10 @@ public class dbquery {
 
                     // Check for match to "text"
                     String sdtNameString = new String(sdtnameBytes);
-                    System.out.println(sdtNameString);
-                    System.out.println(i*numBytesInOneRecord);
-                    System.out.println(numBytesInSdtnameField);
-                    System.out.println(pageNo);
+//                    System.out.println(sdtNameString);
+//                    System.out.println(i*numBytesInOneRecord);
+//                    System.out.println(numBytesInSdtnameField);
+//                    System.out.println(pageNo);
 
                     String sFormat = String.format("(.*)%s(.*)", text);
                     // if match is found, copy bytes of other fields and print out the record
@@ -110,7 +110,7 @@ public class dbquery {
                                 + "," + new String(dayBytes).trim() + "," + ByteBuffer.wrap(timeBytes).getInt()
                                 + "," + ByteBuffer.wrap(sensorIdBytes).getInt() + "," +
                                 new String(sensorNameBytes).trim() + "," + ByteBuffer.wrap(countsBytes).getInt();
-                        System.out.println(record);
+//                        System.out.println(record);
                     }
                 }
             }
